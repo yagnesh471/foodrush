@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign Up — FoodRush 🍔</title>
+  <link rel="icon" href="favicon.ico" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+  <div class="bg-gradient"></div>
+  <div id="toast-container"></div>
+
+  <div class="auth-wrapper">
+    <div class="auth-container fade-in">
+      <div class="auth-logo">
+        <span class="logo-icon">🍕</span>
+        <h1>FoodRush</h1>
+        <p>Create account with OTP verification</p>
+      </div>
+
+      <div class="auth-card">
+        <h2 class="auth-title">Create Account ✨</h2>
+        <p class="auth-subtitle">OTP will be sent to your email</p>
+
+        <div id="alert-box"></div>
+
+        <form id="signup-form" onsubmit="handleSignup(event)" autocomplete="off" novalidate>
+          <div class="form-group">
+            <label class="form-label">👤 Username</label>
+            <input
+              class="form-input"
+              id="username"
+              name="foodrush-signup-username"
+              type="text"
+              placeholder="Enter username"
+              autocomplete="off"
+              autocapitalize="off"
+              spellcheck="false"
+              value=""
+              required
+              minlength="3"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">📧 Email</label>
+            <input
+              class="form-input"
+              id="email"
+              name="foodrush-signup-email"
+              type="email"
+              placeholder="Enter email"
+              autocomplete="off"
+              autocapitalize="off"
+              spellcheck="false"
+              value=""
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">📱 Phone</label>
+            <input
+              class="form-input"
+              id="phone"
+              name="foodrush-signup-phone"
+              type="tel"
+              placeholder="Enter 10 digit mobile number"
+              autocomplete="off"
+              value=""
+              maxlength="10"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">🔒 Password</label>
+            <input
+              class="form-input"
+              id="password"
+              name="foodrush-signup-password"
+              type="password"
+              placeholder="Enter password"
+              autocomplete="new-password"
+              value=""
+              required
+              minlength="6"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">🔐 Confirm Password</label>
+            <input
+              class="form-input"
+              id="confirm-password"
+              name="foodrush-signup-confirm-password"
+              type="password"
+              placeholder="Confirm password"
+              autocomplete="new-password"
+              value=""
+              required
+            />
+          </div>
+
+          <button class="btn btn-primary btn-full" id="signup-btn" type="submit">
+            Send OTP
+          </button>
+        </form>
+
+        <div class="otp-section" id="otp-section" style="display:none;">
+          <div class="form-group">
+            <label class="form-label">✅ Enter OTP</label>
+            <input
+              class="form-input"
+              id="signup-otp"
+              name="foodrush-signup-otp"
+              type="text"
+              maxlength="6"
+              placeholder="Enter 6-digit OTP"
+              autocomplete="off"
+              value=""
+            />
+          </div>
+
+          <button class="btn btn-success btn-full" id="verify-btn" type="button" onclick="verifySignupOtp()">
+            Verify & Create Account
+          </button>
+
+          <button class="btn btn-secondary btn-full" id="resend-btn" style="margin-top:0.7rem;" type="button" onclick="resendSignupOtp()">
+            Resend OTP
+          </button>
+        </div>
+
+        <p class="auth-footer">
+          Already have an account?
+          <a href="index.html">Sign in →</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">© 2026 FoodRush | Built using MERN Stack</footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/script.js"></script>
+
+  <script>
+    let pendingEmail = "";
+
+    function clearSignupFields() {
+      ["username", "email", "phone", "password", "confirm-password", "signup-otp"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = "";
+      });
+
+      clearAlert("alert-box");
+    }
+
+    window.addEventListener("load", clearSignupFields);
+    window.addEventListener("pageshow", clearSignupFields);
+
+    async function handleSignup(e) {
+      e.preventDefault();
+
+      clearAlert("alert-box");
+
+      const username = document.getElementById("username").value.trim();
+      const email = document.getElementById("email").value.trim().toLowerCase();
+      const phone = document.getElementById("phone").value.trim();
+      const password = document.getElementById("password").value;
+      const confirm = document.getElementById("confirm-password").value;
+      const btn = document.getElementById("signup-btn");
+
+      if (!username || !email || !phone || !password || !confirm) {
+        return showAlert("alert-box", "Please fill all fields.", "error");
+      }
+
+      if (!/^[0-9]{10}$/.test(phone)) {
+        return showAlert("alert-box", "Enter valid 10 digit mobile number.", "error");
+      }
+
+      if (password.length < 6) {
+        return showAlert("alert-box", "Password must be at least 6 characters.", "error");
+      }
+
+      if (password !== confirm) {
+        return showAlert("alert-box", "Passwords do not match.", "error");
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Sending OTP...";
+
+      try {
+        await apiRequest("/auth/signup", {
+          method: "POST",
+          body: JSON.stringify({
+            username,
+            email,
+            phone,
+            password
+          })
+        });
+
+        pendingEmail = email;
+
+        document.getElementById("otp-section").style.display = "block";
+
+        showAlert("alert-box", "OTP sent successfully to your email.", "success");
+
+      } catch (err) {
+        showAlert("alert-box", err.message, "error");
+      }
+
+      btn.disabled = false;
+      btn.textContent = "Send OTP";
+    }
+
+    async function resendSignupOtp() {
+      clearAlert("alert-box");
+
+      const email = pendingEmail || document.getElementById("email").value.trim().toLowerCase();
+      const btn = document.getElementById("resend-btn");
+
+      if (!email) {
+        return showAlert("alert-box", "Please enter email first.", "error");
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Resending OTP...";
+
+      try {
+        await apiRequest("/auth/resend-otp", {
+          method: "POST",
+          body: JSON.stringify({ email })
+        });
+
+        pendingEmail = email;
+
+        showAlert("alert-box", "New OTP sent successfully.", "success");
+
+      } catch (err) {
+        showAlert("alert-box", err.message, "error");
+      }
+
+      btn.disabled = false;
+      btn.textContent = "Resend OTP";
+    }
+
+    async function verifySignupOtp() {
+      clearAlert("alert-box");
+
+      const otp = document.getElementById("signup-otp").value.trim();
+      const btn = document.getElementById("verify-btn");
+
+      if (!otp) {
+        return showAlert("alert-box", "Please enter OTP.", "error");
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Verifying...";
+
+      try {
+        await apiRequest("/auth/verify-signup", {
+          method: "POST",
+          body: JSON.stringify({
+            email: pendingEmail,
+            otp
+          })
+        });
+
+        localStorage.removeItem("foodrush_user");
+        localStorage.removeItem("foodrush_token");
+        localStorage.removeItem("foodrush_login_at");
+
+        showToast("Account created successfully! Please login.", "success");
+
+        setTimeout(() => {
+          window.location.replace("index.html");
+        }, 1200);
+
+      } catch (err) {
+        showAlert("alert-box", err.message, "error");
+
+        btn.disabled = false;
+        btn.textContent = "Verify & Create Account";
+      }
+    }
+  </script>
+</body>
+</html>

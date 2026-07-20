@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — FoodRush 🍔</title>
+  <link rel="icon" href="favicon.ico" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+  <div class="bg-gradient"></div>
+  <div id="toast-container"></div>
+
+  <div class="auth-wrapper">
+    <div class="auth-container fade-in">
+      <div class="auth-logo">
+        <span class="logo-icon">🍔</span>
+        <h1>FoodRush</h1>
+        <p>Delicious food, delivered fast 🚀</p>
+      </div>
+
+      <div class="auth-card">
+        <h2 class="auth-title">Welcome Back! 👋</h2>
+        <p class="auth-subtitle">Sign in to continue ordering</p>
+
+        <div id="alert-box"></div>
+
+        <form id="login-form" onsubmit="handleLogin(event)" autocomplete="off" novalidate>
+          <div class="form-group">
+            <label class="form-label">👤 Username</label>
+            <input
+              class="form-input"
+              id="username"
+              name="foodrush-login-username"
+              type="text"
+              placeholder="Enter your username"
+              autocomplete="off"
+              autocapitalize="off"
+              spellcheck="false"
+              value=""
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">🔒 Password</label>
+            <input
+              class="form-input"
+              id="password"
+              name="foodrush-login-password"
+              type="password"
+              placeholder="Enter your password"
+              autocomplete="new-password"
+              value=""
+              required
+            />
+          </div>
+
+          <button class="btn btn-primary btn-full" id="login-btn" type="submit">
+            🚀 Sign In
+          </button>
+        </form>
+
+        <p class="auth-footer">
+          <a class="small-link" href="forgot-password.html">Forgot password?</a>
+        </p>
+
+        <div class="divider">or</div>
+
+        <a href="admin.html" class="btn btn-secondary btn-full">⚙️ Admin Panel</a>
+
+        <p class="auth-footer">
+          Don't have an account?
+          <a href="signup.html">Create one →</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">© 2026 FoodRush | Built with ❤️ by the FoodRush Team</footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/script.js"></script>
+
+  <script>
+    if (isLoggedIn()) {
+      window.location.replace("home.html");
+    }
+
+    function clearLoginFields() {
+      const username = document.getElementById("username");
+      const password = document.getElementById("password");
+
+      if (username) username.value = "";
+      if (password) password.value = "";
+
+      clearAlert("alert-box");
+    }
+
+    window.addEventListener("load", clearLoginFields);
+    window.addEventListener("pageshow", clearLoginFields);
+
+    async function handleLogin(e) {
+      e.preventDefault();
+
+      clearAlert("alert-box");
+
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value;
+      const btn = document.getElementById("login-btn");
+
+      if (!username || !password) {
+        return showAlert("alert-box", "Please enter username and password.", "error");
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Signing in...";
+
+      try {
+        const data = await apiRequest("/auth/login", {
+          method: "POST",
+          body: JSON.stringify({
+            username,
+            password
+          }),
+        });
+
+        sessionLogin(data.user, data.token);
+
+        document.getElementById("username").value = "";
+        document.getElementById("password").value = "";
+
+        showToast("Login successful!", "success");
+
+        setTimeout(() => {
+          window.location.replace("home.html");
+        }, 500);
+
+      } catch (err) {
+        showAlert("alert-box", err.message, "error");
+
+        btn.disabled = false;
+        btn.textContent = "🚀 Sign In";
+      }
+    }
+  </script>
+</body>
+</html>

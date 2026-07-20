@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel — FoodRush ⚙️</title>
+  <meta name="description" content="FoodRush admin dashboard — manage orders, food items, and users." />
+  <link rel="icon" href="favicon.ico" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+  <div class="bg-gradient"></div>
+  <div id="toast-container"></div>
+
+  <div id="admin-login-screen" class="admin-login-wrapper">
+    <div class="auth-container fade-in">
+      <div class="auth-logo">
+        <span class="logo-icon">⚙️</span>
+        <h1>Admin Panel</h1>
+        <p>FoodRush Management System</p>
+      </div>
+
+      <div class="auth-card">
+        <h2 class="auth-title">Admin Login 🔐</h2>
+        <p class="auth-subtitle">Secure access for administrators only</p>
+
+        <div id="admin-alert"></div>
+
+        <form onsubmit="handleAdminLogin(event)" autocomplete="off" novalidate>
+          <div class="form-group">
+            <label class="form-label">👤 Username</label>
+            <input
+              class="form-input"
+              id="admin-user"
+              type="text"
+              placeholder="Enter admin username"
+              autocomplete="off"
+              value=""
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">🔒 Password</label>
+            <input
+              class="form-input"
+              id="admin-pass"
+              type="password"
+              placeholder="Enter admin password"
+              autocomplete="new-password"
+              value=""
+              required
+            />
+          </div>
+
+          <button type="submit" id="admin-login-btn" class="btn btn-primary btn-full">
+            ⚙️ Enter Admin Panel
+          </button>
+        </form>
+
+        <p class="auth-footer">
+          <a href="index.html">← Back to User Login</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div id="admin-dashboard" style="display:none;">
+    <nav class="navbar">
+      <span class="navbar-brand">⚙️ Admin Panel</span>
+      <ul class="navbar-nav">
+        <li><a href="index.html">👤 User App</a></li>
+      </ul>
+      <div class="navbar-user">
+        <span class="user-badge">🛡️ admin</span>
+        <button class="btn btn-secondary btn-sm" onclick="adminLogout()">🚪 Logout</button>
+      </div>
+    </nav>
+
+    <div class="admin-wrapper">
+      <h2 class="section-title">📊 Dashboard</h2>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">👥</div>
+          <div class="stat-value" id="stat-users">0</div>
+          <div class="stat-label">Total Users</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">📦</div>
+          <div class="stat-value" id="stat-orders">0</div>
+          <div class="stat-label">Total Orders</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">💰</div>
+          <div class="stat-value" id="stat-revenue">₹0</div>
+          <div class="stat-label">Total Revenue</div>
+        </div>
+      </div>
+
+      <div class="admin-grid">
+        <div class="admin-panel">
+          <h3 class="panel-title">➕ Add Food Item</h3>
+          <div id="add-food-alert"></div>
+
+          <div class="form-group">
+            <label class="form-label">🍽️ Food Name</label>
+            <input class="form-input" id="new-food-name" type="text" placeholder="e.g. Spicy Noodles" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">📂 Category</label>
+            <select class="form-input" id="new-food-cat">
+              <option value="">Select category</option>
+              <option>Burgers</option>
+              <option>Pizza</option>
+              <option>Indian</option>
+              <option>Wraps</option>
+              <option>Drinks</option>
+              <option>Desserts</option>
+              <option>Other</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">💰 Price (₹)</label>
+            <input class="form-input" id="new-food-price" type="number" placeholder="e.g. 199" min="1" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">🖼️ Image URL</label>
+            <input class="form-input" id="new-food-img" type="url" placeholder="https://..." />
+          </div>
+
+          <button class="btn btn-success btn-full" id="add-food-btn" onclick="addFoodItem()">
+            ➕ Add Food Item
+          </button>
+        </div>
+
+        <div class="admin-panel">
+          <h3 class="panel-title">
+            🍔 Food Items
+            <span id="food-count" style="font-size:0.8rem;background:var(--input-bg);padding:2px 8px;border-radius:50px;"></span>
+          </h3>
+
+          <div style="max-height:380px;overflow-y:auto;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Category</th>
+                  <th>Price</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="food-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-panel" style="margin-bottom:2rem;">
+        <h3 class="panel-title">📦 All Orders</h3>
+
+        <div style="overflow-x:auto;">
+          <table class="data-table" style="min-width:760px;">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Update Status</th>
+              </tr>
+            </thead>
+            <tbody id="orders-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">© 2026 FoodRush | Built using MERN Stack</footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/script.js"></script>
+
+  <script>
+    window.addEventListener("pageshow", () => {
+      const userInput = document.getElementById("admin-user");
+      const passInput = document.getElementById("admin-pass");
+
+      if (userInput) userInput.value = "";
+      if (passInput) passInput.value = "";
+
+      if (isAdminLoggedIn()) {
+        showDashboard();
+      }
+    });
+
+    async function handleAdminLogin(e) {
+      e.preventDefault();
+
+      clearAlert("admin-alert");
+
+      const username = document.getElementById("admin-user").value.trim();
+      const password = document.getElementById("admin-pass").value;
+      const btn = document.getElementById("admin-login-btn");
+
+      if (!username || !password) {
+        return showAlert("admin-alert", "Enter admin username and password.", "error");
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Checking...";
+
+      try {
+        const data = await apiRequest("/admin/login", {
+          method: "POST",
+          body: JSON.stringify({
+            username,
+            password
+          })
+        });
+
+        adminSessionLogin(data.token);
+
+        document.getElementById("admin-user").value = "";
+        document.getElementById("admin-pass").value = "";
+
+        showDashboard();
+        showToast("Welcome, Admin! 🎉", "success");
+
+      } catch (err) {
+        showAlert("admin-alert", err.message, "error");
+      }
+
+      btn.disabled = false;
+      btn.textContent = "⚙️ Enter Admin Panel";
+    }
+
+    function showDashboard() {
+      document.getElementById("admin-login-screen").style.display = "none";
+      document.getElementById("admin-dashboard").style.display = "block";
+      loadDashboard();
+    }
+
+    function adminLogout() {
+      adminSessionLogout();
+
+      document.getElementById("admin-dashboard").style.display = "none";
+      document.getElementById("admin-login-screen").style.display = "flex";
+      document.getElementById("admin-user").value = "";
+      document.getElementById("admin-pass").value = "";
+      clearAlert("admin-alert");
+
+      showToast("Admin logged out successfully.", "info");
+    }
+
+    async function loadDashboard() {
+      await Promise.all([
+        loadStats(),
+        loadFoodTable(),
+        loadOrdersTable()
+      ]);
+    }
+
+    async function loadStats() {
+      const stats = await apiRequest("/admin/stats");
+
+      document.getElementById("stat-users").textContent = stats.totalUsers;
+      document.getElementById("stat-orders").textContent = stats.totalOrders;
+      document.getElementById("stat-revenue").textContent = `₹${stats.totalRevenue}`;
+    }
+
+    async function loadFoodTable() {
+      const foods = await apiRequest("/foods");
+
+      document.getElementById("food-count").textContent = `${foods.length} items`;
+
+      const tbody = document.getElementById("food-table-body");
+
+      tbody.innerHTML = foods.map(f => `
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+              <img
+                src="${f.image_url}"
+                alt=""
+                style="width:32px;height:32px;border-radius:6px;object-fit:cover;"
+                onerror="this.style.display='none'"
+              />
+              ${f.name}
+            </div>
+          </td>
+          <td>${f.category}</td>
+          <td style="font-weight:700;color:var(--secondary);">₹${f.price}</td>
+          <td>
+            <button
+              class="btn btn-danger btn-sm"
+              onclick="deleteFoodItem('${f._id}', '${f.name.replace(/'/g, "\\'")}')"
+            >
+              🗑️ Delete
+            </button>
+          </td>
+        </tr>
+      `).join("") || `
+        <tr>
+          <td colspan="4" style="text-align:center;color:var(--text-muted);">
+            No food items.
+          </td>
+        </tr>
+      `;
+    }
+
+    async function loadOrdersTable() {
+      const orders = await apiRequest("/admin/orders");
+
+      const tbody = document.getElementById("orders-table-body");
+
+      tbody.innerHTML = orders.map(o => `
+        <tr>
+          <td style="font-size:0.8rem;font-family:monospace;">${o.orderId}</td>
+          <td>👤 ${o.username}</td>
+          <td style="font-weight:700;color:var(--secondary);">₹${o.totalPrice}</td>
+          <td>
+            <span class="status-badge ${statusBadgeClass(o.status)}">
+              ${o.status}
+            </span>
+          </td>
+          <td style="font-size:0.8rem;color:var(--text-muted);">
+            ${formatDate(o.createdAt)}
+          </td>
+          <td>
+            <select
+              class="form-input"
+              style="padding:0.4rem 0.6rem;font-size:0.8rem;width:auto;"
+              onchange="updateOrderStatus('${o.orderId}', this.value)"
+            >
+              <option value="">Change status...</option>
+              <option value="Order Placed" ${o.status === "Order Placed" ? "selected" : ""}>Order Placed</option>
+              <option value="Preparing" ${o.status === "Preparing" ? "selected" : ""}>Preparing</option>
+              <option value="Out for Delivery" ${o.status === "Out for Delivery" ? "selected" : ""}>Out for Delivery</option>
+              <option value="Delivered" ${o.status === "Delivered" ? "selected" : ""}>Delivered</option>
+              <option value="Cancelled" ${o.status === "Cancelled" ? "selected" : ""}>Cancelled</option>
+            </select>
+          </td>
+        </tr>
+      `).join("") || `
+        <tr>
+          <td colspan="6" style="text-align:center;color:var(--text-muted);">
+            No orders yet.
+          </td>
+        </tr>
+      `;
+    }
+
+    async function addFoodItem() {
+      clearAlert("add-food-alert");
+
+      const name = document.getElementById("new-food-name").value.trim();
+      const category = document.getElementById("new-food-cat").value;
+      const price = parseInt(document.getElementById("new-food-price").value, 10);
+      const image_url = document.getElementById("new-food-img").value.trim();
+      const btn = document.getElementById("add-food-btn");
+
+      if (!name || !category || !price || !image_url) {
+        return showAlert("add-food-alert", "Please fill in all fields.", "error");
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Adding...";
+
+      try {
+        await apiRequest("/admin/foods", {
+          method: "POST",
+          body: JSON.stringify({
+            name,
+            category,
+            price,
+            image_url
+          })
+        });
+
+        showToast(`"${name}" added successfully! ✅`, "success");
+
+        document.getElementById("new-food-name").value = "";
+        document.getElementById("new-food-price").value = "";
+        document.getElementById("new-food-img").value = "";
+        document.getElementById("new-food-cat").value = "";
+
+        loadFoodTable();
+        loadStats();
+
+      } catch (err) {
+        showAlert("add-food-alert", err.message, "error");
+      }
+
+      btn.disabled = false;
+      btn.textContent = "➕ Add Food Item";
+    }
+
+    async function deleteFoodItem(id, name) {
+      if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+
+      try {
+        await apiRequest(`/admin/foods/${id}`, {
+          method: "DELETE"
+        });
+
+        showToast(`"${name}" deleted.`, "info");
+        loadFoodTable();
+
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    }
+
+    async function updateOrderStatus(orderId, newStatus) {
+      if (!newStatus) return;
+
+      try {
+        await apiRequest(`/admin/orders/${orderId}`, {
+          method: "PATCH",
+          body: JSON.stringify({
+            status: newStatus
+          })
+        });
+
+        showToast(`Order updated: ${newStatus} ✅`, "success");
+
+        loadOrdersTable();
+        loadStats();
+
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    }
+  </script>
+</body>
+</html>
